@@ -1,0 +1,38 @@
+version: '3'
+services:
+  simulator:
+    image: "demo-springboot-prometheus:${IMAGE_TAG}"
+    container_name: demo-springboot-prometheus-service
+    ports:
+    - "${SERVICE_PORT}:9999"
+    environment:
+      - "JAVA_OPTS=${JAVA_OPTS}"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    restart: always
+  prometheus:
+    image: prom/prometheus
+    container_name: demo-springboot-prometheus-prometheus
+    volumes:
+      - ./prometheus/config-${SERVICE_PORT}.yml:/etc/prometheus/config-${SERVICE_PORT}.yml
+    command:
+      - '--config.file=/etc/prometheus/config-${SERVICE_PORT}.yml'
+    ports:
+      - 9090:9090
+    restart: always
+    depends_on:
+      - simulator
+  grafana:
+    image: grafana/grafana
+    container_name: demo-springboot-prometheus-grafana
+    volumes:
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards/providers:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards/definitions:/var/lib/grafana/dashboards
+    ports:
+      - 3000:3000
+    restart: always
+    depends_on:
+      - prometheus
