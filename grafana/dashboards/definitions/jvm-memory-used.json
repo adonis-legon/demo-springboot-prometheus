@@ -130,7 +130,7 @@
     "timepicker": {},
     "timezone": "",
     "title": "JVM Memory Used",
-    "uid": "a3P13du7z",
+    "uid": "demo-springboot-prometheus-memory",
     "version": 1,
     "weekStart": ""
   }

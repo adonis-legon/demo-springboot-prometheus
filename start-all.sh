@@ -11,4 +11,4 @@ envsubst < ./prometheus/config.yml > ./prometheus/config-$SERVICE_PORT.yml
 
 docker-compose --project-name $SERVICE_NAME-$IMAGE_TAG up --detach
 
-echo "Visit default generated Dashboards at: http://localhost:3000/?orgId=1"
+echo "Visit default generated Dashboards at: http://localhost:3000/dashboards"
