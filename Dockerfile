@@ -1,24 +1,32 @@
-FROM openjdk:8u191-jdk-alpine as build
+# Use maven to compile the java application.
+FROM maven:3.9.3-eclipse-temurin-8-alpine AS build
+
+# Set the working directory to /app
 WORKDIR /workspace/app
 
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-COPY src src
+# copy project content
+COPY . ./
 
-RUN chmod +x mvnw
-RUN ./mvnw package
+# Compile the application.
+RUN mvn clean package -DskipTests
+
+# Unpack the fatjar to create application layers
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
-FROM openjdk:8-jdk-alpine
-VOLUME /tmp
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
-ARG DEPENDENCY=/workspace/app/target/dependency
+# Build runtime image.
+FROM openjdk:8u191-jdk-alpine
 
+# Adds an user and group and setting it as current user
+RUN addgroup -S app && adduser -S app -G app
+USER app
+
+VOLUME /tmp
+
+# Copy the application layers
+ARG DEPENDENCY=/workspace/app/target/dependency
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-ENV JAVA_OPTS=""
-CMD java $JAVA_OPTS -cp app:app/lib/* com.example.demospringbootprometheus.DemoSpringbootPrometheusApplication
+# Starts java app from the entrypoint
+ENTRYPOINT ["java", "-cp", "app:app/lib/*", "com.example.demospringbootprometheus.DemoSpringbootPrometheusApplication"]
